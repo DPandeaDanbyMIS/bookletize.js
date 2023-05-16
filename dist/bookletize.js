@@ -3,7 +3,6 @@ const { PDFDocument, StandardFonts, rgb } = PDFLib
 async function createPdf(existingPdfBytes, options) {
   const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
   const bookletDoc = await PDFLib.PDFDocument.create();
-
   options = options || {};
   const { width, height } = await pdfDoc.getPages()[0].getSize();
 
@@ -56,11 +55,16 @@ async function createPdf(existingPdfBytes, options) {
     console.log('added sheet', sheet);
   }
 
+
   console.log('completed assembling sheets');
   $('.fa-spin').addClass('hidden');
 //  const pdfDataUri = await bookletDoc.saveAsBase64({ dataUri: true });
 //  document.getElementById('pdf').src = pdfDataUri;
-  const pdfBytes = await bookletDoc.save();
+  const pdfBytes = await bookletDoc.save(); // returns Uint8Array
+
+  // require(['path/to/file'], function(download) {
+    download(pdfBytes, options.name+"_booklet.pdf", "application/pdf");
+  // });
   var blob = new Blob([pdfBytes], {type: "application/pdf"});
   var link = window.URL.createObjectURL(blob);
 
@@ -87,7 +91,8 @@ function setup() {
     var reader = new FileReader();
 
     reader.onload = () => {
-      createPdf(reader.result);
+      var opts = {name: file.name.substring(0,file.name.lastIndexOf("."))};
+      createPdf(reader.result, opts);
     };
 
     reader.readAsArrayBuffer(file);
